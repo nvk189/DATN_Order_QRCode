@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  password     String
+  avatar       String?
+  role         String         @default("Employee")
+  orders       Order[]
+  employees    Account[]      @relation("OwnerEmployee")
+  owner        Account?       @relation("OwnerEmployee", fields: [ownerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  ownerId      Int?
+  refreshToken RefreshToken[]
+  sockets      Socket[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Dish {
+  id            Int            @id @default(autoincrement())
+  name          String
+  price         Int
+  description   String
+  image         String
+  status        String         @default("Available")
+  dishSnapshots DishSnapshot[]
+  categoryId    Int?
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model DishSnapshot {
+  id          Int        @id @default(autoincrement())
+  name        String
+  price       Int
+  description String
+  image       String
+  status      String     @default("Available")
+  dishId      Int?
+  dish        Dish?      @relation(fields: [dishId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  order       Order?
+  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime   @default(now())
+}
+
+model Table {
+  number    Int      @id
+  capacity  Int
+  status    String   @default("Available")
+  token     String
+  orders    Order[]
+  guests    Guest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id             Int           @id @default(autoincrement())
+  guestId        Int?
+  guest          Guest?        @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  tableNumber    Int?
+  table          Table?        @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
+  dishSnapshotId Int           @unique
+  dishSnapshot   DishSnapshot  @relation(fields: [dishSnapshotId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  quantity       Int
+  orderHandlerId Int?
+  orderHandler   Account?      @relation(fields: [orderHandlerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  paymentId      Int?
+  payment        Payment?      @relation(fields: [paymentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  status         String        @default("Pending")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Payment {
+  id          Int             @id @default(autoincrement())
+  guestId     Int?
+  guest       Guest?          @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  totalAmount Int
+  status      String          @default("Paid")
+  paidAt      DateTime?
+  note        String?
+  invoiceCode String?         @unique
+  orders      Order[]
+  details     PaymentDetail[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model PaymentDetail {
+  id                Int             @id @default(autoincrement())
+  paymentId         Int
+  payment           Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  methodId          Int?
+  method            PaymentMethod?  @relation(fields: [methodId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  amount            Int
+  transactionId     String?
+  paymentUrl        String?
+  payosOrderCode    String?
+  payosCheckoutUrl  String?
+  payosStatus       String?         @default("PENDING")
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+}
+
+model RefreshToken {
+  token     String   @id
+  accountId Int
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Guest {
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  tableNumber           Int?
+  table                 Table?    @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
+  orders                Order[]
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  sockets               Socket[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model PaymentMethod {
+  id          Int              @id @default(autoincrement())
+  type        String           @unique
+  description String?
+  details     PaymentDetail[]
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  dishes    Dish[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Socket {
+  socketId  String   @id
+  accountId Int?     @unique
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  guestId   Int?     @unique
+  guest     Guest?   @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+}

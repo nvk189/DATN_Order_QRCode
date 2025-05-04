@@ -1,0 +1,132 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Account {
+  id Int [pk, increment]
+  name String [not null]
+  email String [unique, not null]
+  password String [not null]
+  avatar String
+  role String [not null, default: 'Employee']
+  ownerId Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Dish {
+  id Int [pk, increment]
+  name String [not null]
+  price Int [not null]
+  description String [not null]
+  image String [not null]
+  status String [not null, default: 'Available']
+  categoryId Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table DishSnapshot {
+  id Int [pk, increment]
+  name String [not null]
+  price Int [not null]
+  description String [not null]
+  image String [not null]
+  status String [not null, default: 'Available']
+  dishId Int
+  updatedAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table Table {
+  number Int [pk]
+  capacity Int [not null]
+  status String [not null, default: 'Available']
+  token String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Order {
+  id Int [pk, increment]
+  guestId Int
+  tableNumber Int
+  dishSnapshotId Int [unique, not null]
+  quantity Int [not null]
+  orderHandlerId Int
+  paymentId Int
+  status String [not null, default: 'Pending']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Payment {
+  id Int [pk, increment]
+  guestId Int
+  totalAmount Int [not null]
+  status String [not null, default: 'Paid']
+  paidAt DateTime
+  note String
+  invoiceCode String [unique]  // Thêm trường mã hóa đơn
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table PaymentDetail {
+  id Int [pk, increment]
+  paymentId Int [not null]
+  methodId Int [not null]
+  amount Int [not null]
+  transactionId String
+  paymentUrl String
+  payosOrderCode String?  // Mã đơn hàng từ PayOS
+  payosCheckoutUrl String?  // URL thanh toán của PayOS
+  payosStatus String? [default: 'PENDING']  // Trạng thái thanh toán từ PayOS
+  paidAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table RefreshToken {
+  token String [pk]
+  accountId Int [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table Guest {
+  id Int [pk, increment]
+  name String [not null]
+  tableNumber Int
+  refreshToken String
+  refreshTokenExpiresAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table PaymentMethod {
+  id Int [pk, increment]
+  type String [not null, unique] // 'Cash', 'Online', etc.
+  description String
+}
+
+Table Category {
+  id Int [pk, increment]
+  name String [not null, unique]
+  description String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Ref: Account.ownerId > Account.id
+Ref: Dish.categoryId > Category.id [delete: Set Null]
+Ref: DishSnapshot.dishId > Dish.id [delete: Set Null]
+Ref: Order.guestId > Guest.id [delete: Set Null]
+Ref: Order.tableNumber > Table.number [delete: Set Null]
+Ref: Order.dishSnapshotId - DishSnapshot.id [delete: Cascade]
+Ref: Order.orderHandlerId > Account.id [delete: Set Null]
+Ref: Order.paymentId > Payment.id [delete: Set Null]
+Ref: Payment.guestId > Guest.id [delete: Set Null]
+Ref: PaymentDetail.paymentId > Payment.id [delete: Cascade]
+Ref: PaymentDetail.methodId > PaymentMethod.id [delete: Set Null]
+Ref: RefreshToken.accountId > Account.id [delete: Cascade]
+Ref: Guest.tableNumber > Table.number [delete: Set Null]
