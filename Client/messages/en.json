@@ -5,12 +5,12 @@
     "minmaxPassword": "Password must be between 6 and 100 characters"
   },
   "Brand": {
-    "title": "Big Boy Restaurant",
-    "defaultTitle": "Big Boy"
+    "title": "Hoang Long Restaurant",
+    "defaultTitle": "Hoang Long"
   },
   "HomePage": {
     "title": "Home page",
-    "description": "Craving a classic American diner experience? Look no further than Big Boy! Savor our iconic Big Boy burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
+    "description": "Craving a classic American diner experience? Look no further than Hoang Long! Savor our iconic Hoang Long burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
     "slogan": "Taste good, every moment",
     "h2": "A variety of dishes"
   },
