@@ -1,187 +1,198 @@
-'use client'
-import { Button } from '@/components/ui/button'
+"use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Upload } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormMessage
-} from '@/components/ui/form'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getVietnameseDishStatus, handleErrorApi } from '@/lib/utils'
+  FormMessage,
+} from "@/components/ui/form";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getVietnameseDishStatus, handleErrorApi } from "@/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from "@/components/ui/select";
 import {
   UpdateDishBody,
-  UpdateDishBodyType
-} from '@/schemaValidations/dish.schema'
-import { DishStatus, DishStatusValues } from '@/constants/type'
-import { Textarea } from '@/components/ui/textarea'
-import { useUploadMediaMutation } from '@/queries/useMedia'
-import { useGetDishQuery, useUpdateDishMutation } from '@/queries/useDish'
-import { toast } from '@/components/ui/use-toast'
-import revalidateApiRequest from '@/apiRequests/revalidate'
+  UpdateDishBodyType,
+} from "@/schemaValidations/dish.schema";
+import { DishStatus, DishStatusValues } from "@/constants/type";
+import { Textarea } from "@/components/ui/textarea";
+import { useUploadMediaMutation } from "@/queries/useMedia";
+import {
+  useGetDishQuery,
+  useUpdateDishMutation,
+  useDishListStatusQuery,
+} from "@/queries/useDish";
+import { toast } from "@/components/ui/use-toast";
+import revalidateApiRequest from "@/apiRequests/revalidate";
 
 export default function EditDish({
   id,
   setId,
-  onSubmitSuccess
+  onSubmitSuccess,
 }: {
-  id?: number | undefined
-  setId: (value: number | undefined) => void
-  onSubmitSuccess?: () => void
+  id?: number | undefined;
+  setId: (value: number | undefined) => void;
+  onSubmitSuccess?: () => void;
 }) {
-  const [file, setFile] = useState<File | null>(null)
-  const imageInputRef = useRef<HTMLInputElement | null>(null)
-  const uploadMediaMutation = useUploadMediaMutation()
-  const updateDishMutation = useUpdateDishMutation()
-  const { data } = useGetDishQuery({ enabled: Boolean(id), id: id as number })
+  const [file, setFile] = useState<File | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadMediaMutation = useUploadMediaMutation();
+  const updateDishMutation = useUpdateDishMutation();
+  const { data } = useGetDishQuery({ enabled: Boolean(id), id: id as number });
   const form = useForm<UpdateDishBodyType>({
     resolver: zodResolver(UpdateDishBody),
     defaultValues: {
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       price: 0,
       image: undefined,
-      status: DishStatus.Unavailable
-    }
-  })
-  const image = form.watch('image')
-  const name = form.watch('name')
+      status: DishStatus.Unavailable,
+      categoryID: 0,
+    },
+  });
+  const image = form.watch("image");
+  const name = form.watch("name");
 
   const previewAvatarFromFile = useMemo(() => {
     if (file) {
-      return URL.createObjectURL(file)
+      return URL.createObjectURL(file);
     }
-    return image
-  }, [file, image])
+    return image;
+  }, [file, image]);
 
   useEffect(() => {
     if (data) {
-      const { name, image, description, price, status } = data.payload.data
+      const { name, image, description, price, status, categoryID } =
+        data.payload.data;
       form.reset({
         name,
         image: image ?? undefined,
         description,
         price,
-        status
-      })
+        status,
+        categoryID,
+      });
     }
-  }, [data, form])
+  }, [data, form]);
+  const { data: categories, isLoading } = useDishListStatusQuery();
+  const categoryList = categories?.payload?.data ?? [];
   const onSubmit = async (values: UpdateDishBodyType) => {
-    if (updateDishMutation.isPending) return
+    if (updateDishMutation.isPending) return;
     try {
       let body: UpdateDishBodyType & { id: number } = {
         id: id as number,
-        ...values
-      }
+        ...values,
+      };
       if (file) {
-        const formData = new FormData()
-        formData.append('file', file)
+        const formData = new FormData();
+        formData.append("file", file);
         const uploadImageResult = await uploadMediaMutation.mutateAsync(
           formData
-        )
-        const imageUrl = uploadImageResult.payload.data
+        );
+        const imageUrl = uploadImageResult.payload.data;
         body = {
           ...body,
-          image: imageUrl
-        }
+          image: imageUrl,
+        };
       }
-      const result = await updateDishMutation.mutateAsync(body)
-      await revalidateApiRequest('dishes')
+      const result = await updateDishMutation.mutateAsync(body);
+      await revalidateApiRequest("dishes");
       toast({
-        description: result.payload.message
-      })
-      reset()
-      onSubmitSuccess && onSubmitSuccess()
+        description: result.payload.message,
+      });
+      reset();
+      onSubmitSuccess && onSubmitSuccess();
     } catch (error) {
       handleErrorApi({
         error,
-        setError: form.setError
-      })
+        setError: form.setError,
+      });
     }
-  }
+  };
 
   const reset = () => {
-    setId(undefined)
-    setFile(null)
-  }
+    setId(undefined);
+    setFile(null);
+  };
 
   return (
     <Dialog
       open={Boolean(id)}
       onOpenChange={(value) => {
         if (!value) {
-          reset()
+          reset();
         }
       }}
     >
-      <DialogContent className='sm:max-w-[600px] max-h-screen overflow-auto'>
+      <DialogContent className="sm:max-w-[600px] max-h-screen overflow-auto">
         <DialogHeader>
           <DialogTitle>Cập nhật món ăn</DialogTitle>
           <DialogDescription>
-            Các trường sau đây là bắ buộc: Tên, ảnh
+            Các trường sau đây là bắt buộc: Tên Trạng thái,...
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             noValidate
-            className='grid auto-rows-max items-start gap-4 md:gap-8'
-            id='edit-dish-form'
+            className="grid auto-rows-max items-start gap-4 md:gap-8"
+            id="edit-dish-form"
             onSubmit={form.handleSubmit(onSubmit, console.log)}
           >
-            <div className='grid gap-4 py-4'>
+            <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
-                name='image'
+                name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='flex gap-2 items-start justify-start'>
-                      <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
+                    <div className="flex gap-2 items-start justify-start">
+                      <Avatar className="aspect-square w-[100px] h-[100px] rounded-md object-cover">
                         <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className='rounded-none'>
-                          {name || 'Avatar'}
+                        <AvatarFallback className="rounded-none">
+                          {name || "Avatar"}
                         </AvatarFallback>
                       </Avatar>
                       <input
-                        type='file'
-                        accept='image/*'
+                        type="file"
+                        accept="image/*"
                         ref={imageInputRef}
                         onChange={(e) => {
-                          const file = e.target.files?.[0]
+                          const file = e.target.files?.[0];
                           if (file) {
-                            setFile(file)
-                            field.onChange('http://localhost:3000/' + file.name)
+                            setFile(file);
+                            field.onChange(
+                              "http://localhost:3000/" + file.name
+                            );
                           }
                         }}
-                        className='hidden'
+                        className="hidden"
                       />
                       <button
-                        className='flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed'
-                        type='button'
+                        className="flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed"
+                        type="button"
                         onClick={() => imageInputRef.current?.click()}
                       >
-                        <Upload className='h-4 w-4 text-muted-foreground' />
-                        <span className='sr-only'>Upload</span>
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Upload</span>
                       </button>
                     </div>
                   </FormItem>
@@ -190,13 +201,13 @@ export default function EditDish({
 
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='name'>Tên món ăn</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='name' className='w-full' {...field} />
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="name">Tên món ăn</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Input id="name" className="w-full" {...field} />
                         <FormMessage />
                       </div>
                     </div>
@@ -205,17 +216,17 @@ export default function EditDish({
               />
               <FormField
                 control={form.control}
-                name='price'
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='price'>Giá</Label>
-                      <div className='col-span-3 w-full space-y-2'>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="price">Giá</Label>
+                      <div className="col-span-3 w-full space-y-2">
                         <Input
-                          id='price'
-                          className='w-full'
+                          id="price"
+                          className="w-full"
                           {...field}
-                          type='number'
+                          type="number"
                         />
                         <FormMessage />
                       </div>
@@ -225,15 +236,15 @@ export default function EditDish({
               />
               <FormField
                 control={form.control}
-                name='description'
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Mô tả sản phẩm</Label>
-                      <div className='col-span-3 w-full space-y-2'>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="description">Mô tả sản phẩm</Label>
+                      <div className="col-span-3 w-full space-y-2">
                         <Textarea
-                          id='description'
-                          className='w-full'
+                          id="description"
+                          className="w-full"
                           {...field}
                         />
                         <FormMessage />
@@ -244,12 +255,12 @@ export default function EditDish({
               />
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Trạng thái</Label>
-                      <div className='col-span-3 w-full space-y-2'>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="description">Trạng thái</Label>
+                      <div className="col-span-3 w-full space-y-2">
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -257,7 +268,7 @@ export default function EditDish({
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Chọn trạng thái' />
+                              <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -275,15 +286,52 @@ export default function EditDish({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="categoryID"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="categoryID">Danh mục</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          defaultValue={field.value?.toString()}
+                          disabled={isLoading || !categories}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn danh mục" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categoryList.map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
           </form>
         </Form>
         <DialogFooter>
-          <Button type='submit' form='edit-dish-form'>
+          <Button type="submit" form="edit-dish-form">
             Lưu
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

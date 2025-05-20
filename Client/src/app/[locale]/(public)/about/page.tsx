@@ -7,27 +7,27 @@ export default function About() {
             Về quán ăn Hoàng Long
           </h1>
           <p className='mt-4 text-lg md:text-xl'>
-            Địa chỉ Trương xá, Toàn Thắng, Kim Động, Hưng Yên
+            Địa chỉ: Trương Xá , Toàn Thắng , Kim động , Hưng Yên
           </p>
         </div>
       </section>
       <section className='py-12 md:py-20 lg:py-24'>
         <div className='max-w-4xl space-y-8'>
-          {/* <div>
+          <div>
             <h2 className='text-3xl font-bold'>Câu chuyện của chúng tôi</h2>
             <p className='mt-4 text-muted-foreground leading-8'>
-              Big Boy được thành lập vào năm 2010 với một sứ mệnh đơn giản: phục
+              Hoang Long được thành lập vào năm 2010 với một sứ mệnh đơn giản: phục
               vụ món ăn ngon, chất lượng cao để gắn kết mọi người lại với nhau.
               Niềm đam mê của chúng tôi đối với nguyên liệu đặc biệt và công
               thức sáng tạo đã đưa chúng tôi trở thành một tổ chức địa phương
               được yêu thích, nổi tiếng với cam kết tạo ra những bữa ăn nuôi
               dưỡng cơ thể và tâm hồn.
             </p>
-          </div> */}
+          </div>
           <div>
             <h2 className='text-3xl font-bold'>Giá trị của chúng tôi</h2>
             <p className='mt-4 text-muted-foreground leading-8'>
-              Tại quán ăn Hoàng Long là sự cống hiến sâu sắc cho tính bền
+              Tại trung tâm của Hoang Long là sự cống hiến sâu sắc cho tính bền
               vững, cộng đồng và sự xuất sắc trong ẩm thực. Chúng tôi lấy nguyên
               liệu từ các nông dân và nhà sản xuất địa phương, đảm bảo sự tươi
               mới và hỗ trợ nền kinh tế địa phương. Đội ngũ của chúng tôi đam mê

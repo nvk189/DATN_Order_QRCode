@@ -12,7 +12,16 @@ export const Role = {
 } as const
 
 export const RoleValues = [Role.Owner, Role.Employee, Role.Guest] as const
-
+export const CategoryStatus = {
+  Available: 'Available',
+  Unavailable: 'Unavailable',
+  Hidden: 'Hidden'
+} as const
+export const CategoryStatusValues = [
+  CategoryStatus.Available,
+  CategoryStatus.Unavailable,
+  CategoryStatus.Hidden
+] as const
 export const DishStatus = {
   Available: 'Available',
   Unavailable: 'Unavailable',

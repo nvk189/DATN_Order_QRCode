@@ -5,12 +5,12 @@
     "minmaxPassword": "Mật khẩu phải từ 6 đến 100 ký tự"
   },
   "Brand": {
-    "title": "Quán ăn Hoàng Long",
-    "defaultTitle": "Hoàng Long"
+    "title": "Nhà hàng Big Boy",
+    "defaultTitle": "Big Boy"
   },
   "HomePage": {
     "title": "Trang chủ",
-    "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? Hoàng Long là lựa chọn hoàn hảo! Thưởng thức chiếc Hoàng Long burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
+    "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? Big Boy là lựa chọn hoàn hảo! Thưởng thức chiếc Big Boy burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
     "slogan": "Vị ngon, trọn khoảnh khắc",
     "h2": "Đa dạng các món ăn"
   },
@@ -39,6 +39,10 @@
   "Dashboard": {
     "title": "Bảng điều khiển",
     "description": "Xem và phân tích dữ liệu bán hàng"
+  },
+   "Categoryes": {
+    "title": "Món ăn",
+    "description": "Quản lý món ăn"
   },
   "Dishes": {
     "title": "Món ăn",

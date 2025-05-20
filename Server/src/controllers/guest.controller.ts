@@ -161,7 +161,9 @@ export const guestCreateOrdersController = async (guestId: number, body: GuestCr
             name: dish.name,
             price: dish.price,
             dishId: dish.id,
-            status: dish.status
+            status: dish.status,
+            // đã thêm mới
+            categoryID: dish.categoryID
           }
         })
         const orderRecord = await tx.order.create({

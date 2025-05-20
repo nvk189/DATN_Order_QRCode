@@ -28,6 +28,15 @@ export const getDishListWithPagination = async (page: number, limit: number) => 
   }
 }
 
+export const getDishCategory = (id: number) => {
+  return prisma.dish.findMany({
+    where: {
+      categoryID: id,
+      status: 'Available'
+    }
+  })
+}
+
 export const getDishDetail = (id: number) => {
   return prisma.dish.findUniqueOrThrow({
     where: {

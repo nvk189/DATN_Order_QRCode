@@ -47,7 +47,7 @@ export default async function Layout(
               className='shrink-0 md:hidden'
             >
               <Menu className='h-5 w-5' />
-              <span className='sr-only'>Thực đơn</span>
+              <span className='sr-only'>Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent side='left'>

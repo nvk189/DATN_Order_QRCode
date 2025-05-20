@@ -1,6 +1,7 @@
 import {
   createDish,
   deleteDish,
+  getDishCategory,
   getDishDetail,
   getDishList,
   getDishListWithPagination,
@@ -71,6 +72,28 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
           limit
         },
         message: 'Lấy danh sách món ăn thành công!'
+      })
+    }
+  )
+
+  fastify.get<{
+    Params: DishParamsType
+    Reply: DishListResType
+  }>(
+    '/category/:id',
+    {
+      schema: {
+        params: DishParams,
+        response: {
+          200: DishListRes
+        }
+      }
+    },
+    async (request, reply) => {
+      const dishList = await getDishCategory(request.params.id)
+      reply.send({
+        data: dishList as DishListResType['data'],
+        message: 'Lấy thông tin món ăn theo danh mục thành công!'
       })
     }
   )

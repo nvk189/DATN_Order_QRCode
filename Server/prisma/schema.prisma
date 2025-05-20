@@ -1,6 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator dbml {
   provider = "prisma-dbml-generator"
 }
@@ -20,7 +19,7 @@ model Account {
   email        String         @unique
   password     String
   avatar       String?
-  role         String         @default("Employee")
+  role         String         @default("Employee") // Owner, Employee
   orders       Order[]
   employees    Account[]      @relation("OwnerEmployee")
   owner        Account?       @relation("OwnerEmployee", fields: [ownerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -31,6 +30,15 @@ model Account {
   updatedAt    DateTime       @updatedAt
 }
 
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  status      String   @default("Available")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Dish {
   id            Int            @id @default(autoincrement())
   name          String
@@ -38,85 +46,52 @@ model Dish {
   description   String
   image         String
   status        String         @default("Available")
+  categoryID    Int
   dishSnapshots DishSnapshot[]
-  categoryId    Int?
-  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
 
 model DishSnapshot {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   price       Int
   description String
   image       String
-  status      String     @default("Available")
+  status      String   @default("Available")
+  categoryID  Int
   dishId      Int?
-  dish        Dish?      @relation(fields: [dishId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  dish        Dish?    @relation(fields: [dishId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
   order       Order?
-  updatedAt   DateTime   @updatedAt
-  createdAt   DateTime   @default(now())
 }
 
 model Table {
   number    Int      @id
   capacity  Int
-  status    String   @default("Available")
-  token     String
   orders    Order[]
   guests    Guest[]
+  status    String   @default("Available")
+  token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Order {
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   guestId        Int?
-  guest          Guest?        @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  guest          Guest?       @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  table          Table?       @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
   tableNumber    Int?
-  table          Table?        @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
-  dishSnapshotId Int           @unique
-  dishSnapshot   DishSnapshot  @relation(fields: [dishSnapshotId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dishSnapshot   DishSnapshot @relation(fields: [dishSnapshotId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dishSnapshotId Int          @unique
   quantity       Int
+  orderHandler   Account?     @relation(fields: [orderHandlerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   orderHandlerId Int?
-  orderHandler   Account?      @relation(fields: [orderHandlerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  paymentId      Int?
-  payment        Payment?      @relation(fields: [paymentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  status         String        @default("Pending")
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-}
-
-model Payment {
-  id          Int             @id @default(autoincrement())
-  guestId     Int?
-  guest       Guest?          @relation(fields: [guestId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  totalAmount Int
-  status      String          @default("Paid")
-  paidAt      DateTime?
-  note        String?
-  invoiceCode String?         @unique
-  orders      Order[]
-  details     PaymentDetail[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-model PaymentDetail {
-  id                Int             @id @default(autoincrement())
-  paymentId         Int
-  payment           Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  methodId          Int?
-  method            PaymentMethod?  @relation(fields: [methodId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  amount            Int
-  transactionId     String?
-  paymentUrl        String?
-  payosOrderCode    String?
-  payosCheckoutUrl  String?
-  payosStatus       String?         @default("PENDING")
-  paidAt            DateTime?
-  createdAt         DateTime        @default(now())
+  status         String       @default("Pending")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model RefreshToken {
@@ -130,30 +105,14 @@ model RefreshToken {
 model Guest {
   id                    Int       @id @default(autoincrement())
   name                  String
-  tableNumber           Int?
   table                 Table?    @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
+  tableNumber           Int?
   orders                Order[]
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   sockets               Socket[]
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-}
-
-model PaymentMethod {
-  id          Int              @id @default(autoincrement())
-  type        String           @unique
-  description String?
-  details     PaymentDetail[]
-}
-
-model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  description String?
-  dishes    Dish[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
 }
 
 model Socket {

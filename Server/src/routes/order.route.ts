@@ -4,7 +4,8 @@ import {
   getOrderDetailController,
   getOrdersController,
   payOrdersController,
-  updateOrderController
+  updateOrderController,
+  deleteOrderController
 } from '@/controllers/order.controller'
 import { requireEmployeeHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
@@ -128,6 +129,33 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
       }
       reply.send({
         message: 'Cập nhật đơn hàng thành công',
+        data: result.order as UpdateOrderResType['data']
+      })
+    }
+  )
+  fastify.put<{ Reply: UpdateOrderResType; Body: UpdateOrderBodyType; Params: OrderParamType }>(
+    '/delete/:orderId',
+    {
+      schema: {
+        response: {
+          200: UpdateOrderRes
+        },
+        body: UpdateOrderBody,
+        params: OrderParam
+      }
+    },
+    async (request, reply) => {
+      const result = await deleteOrderController(request.params.orderId, {
+        ...request.body,
+        orderHandlerId: 0
+      })
+      if (result.socketId) {
+        fastify.io.to(result.socketId).to(ManagerRoom).emit('update-order', result.order)
+      } else {
+        fastify.io.to(ManagerRoom).emit('update-order', result.order)
+      }
+      reply.send({
+        message: 'Hủy đơn hàng thành công',
         data: result.order as UpdateOrderResType['data']
       })
     }

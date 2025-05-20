@@ -42,6 +42,7 @@ export const createOrdersController = async (orderHandlerId: number, body: Creat
               image: dish.image,
               name: dish.name,
               price: dish.price,
+              categoryID: dish.categoryID,
               dishId: dish.id,
               status: dish.status
             }
@@ -201,6 +202,7 @@ export const updateOrderController = async (
           image: dish.image,
           name: dish.name,
           price: dish.price,
+          categoryID: dish.categoryID,
           dishId: dish.id,
           status: dish.status
         }
@@ -234,4 +236,36 @@ export const updateOrderController = async (
     order: result,
     socketId: socketRecord?.socketId
   }
+}
+
+export const deleteOrderController = async (
+  orderId: number,
+  body: UpdateOrderBodyType & { orderHandlerId: number }
+) => {
+  const { status, dishId, quantity } = body
+
+  const result = await prisma.$transaction(async (tx) => {
+    const order = await tx.order.update({
+      where: {
+        id: orderId
+      },
+      data: {
+        status: 'Rejected',
+        orderHandlerId: 0
+      }
+    })
+
+    const socketRecord = await tx.socket.findUnique({
+      where: {
+        guestId: order.guestId!
+      }
+    })
+
+    return {
+      order,
+      socketId: socketRecord?.socketId
+    }
+  })
+
+  return result
 }

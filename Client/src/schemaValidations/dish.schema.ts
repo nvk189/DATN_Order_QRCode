@@ -1,15 +1,23 @@
-import { DishStatusValues } from '@/constants/type'
-import z from 'zod'
+import { DishStatusValues } from "@/constants/type";
+import z from "zod";
 
 export const CreateDishBody = z.object({
-  name: z.string().min(1).max(256),
-  price: z.coerce.number().positive(),
+  name: z
+    .string()
+    .min(1, { message: "Tên món ăn không được để trống" })
+    .max(256),
+  price: z.coerce.number().positive({ message: "Giá phải là số dương" }),
   description: z.string().max(10000),
-  image: z.string().url(),
-  status: z.enum(DishStatusValues).optional()
-})
+  image: z.string().url({ message: "Đường dẫn ảnh không hợp lệ" }),
+  status: z
+    .enum(DishStatusValues, {
+      errorMap: () => ({ message: "Trạng thái món ăn không hợp lệ" }),
+    })
+    .optional(),
+  categoryID: z.coerce.number().positive({ message: "Danh mục không hợp lệ" }),
+});
 
-export type CreateDishBodyType = z.TypeOf<typeof CreateDishBody>
+export type CreateDishBodyType = z.TypeOf<typeof CreateDishBody>;
 
 export const DishSchema = z.object({
   id: z.number(),
@@ -18,27 +26,28 @@ export const DishSchema = z.object({
   description: z.string(),
   image: z.string(),
   status: z.enum(DishStatusValues),
+  categoryID: z.number(),
   createdAt: z.date(),
-  updatedAt: z.date()
-})
+  updatedAt: z.date(),
+});
 
 export const DishRes = z.object({
   data: DishSchema,
-  message: z.string()
-})
+  message: z.string(),
+});
 
-export type DishResType = z.TypeOf<typeof DishRes>
+export type DishResType = z.TypeOf<typeof DishRes>;
 
 export const DishListRes = z.object({
   data: z.array(DishSchema),
-  message: z.string()
-})
+  message: z.string(),
+});
 
-export type DishListResType = z.TypeOf<typeof DishListRes>
+export type DishListResType = z.TypeOf<typeof DishListRes>;
 
-export const UpdateDishBody = CreateDishBody
-export type UpdateDishBodyType = CreateDishBodyType
+export const UpdateDishBody = CreateDishBody;
+export type UpdateDishBodyType = CreateDishBodyType;
 export const DishParams = z.object({
-  id: z.coerce.number()
-})
-export type DishParamsType = z.TypeOf<typeof DishParams>
+  id: z.coerce.number(),
+});
+export type DishParamsType = z.TypeOf<typeof DishParams>;

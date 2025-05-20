@@ -14,6 +14,7 @@ import path from 'path'
 import { createFolder } from '@/utils/helpers'
 import mediaRoutes from '@/routes/media.route'
 import staticRoutes from '@/routes/static.route'
+import categoryRoutes from '@/routes/category.route'
 import dishRoutes from '@/routes/dish.route'
 import testRoutes from '@/routes/test.route'
 import { initOwnerAccount } from '@/controllers/account.controller'
@@ -67,6 +68,9 @@ const start = async () => {
     })
     fastify.register(staticRoutes, {
       prefix: '/static'
+    })
+    fastify.register(categoryRoutes, {
+      prefix: '/categoryes'
     })
     fastify.register(dishRoutes, {
       prefix: '/dishes'
