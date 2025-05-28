@@ -1,4 +1,4 @@
-import { ManagerRoom } from '@/constants/type'
+import { ManagerRoom, OrderStatus } from '@/constants/type'
 import {
   createOrdersController,
   getOrderDetailController,
@@ -7,7 +7,7 @@ import {
   updateOrderController,
   deleteOrderController
 } from '@/controllers/order.controller'
-import { requireEmployeeHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
+import { requireEmployeeHook, requireLoginedHook, requireOwnerHook, requireGuestHook } from '@/hooks/auth.hooks'
 import {
   CreateOrdersBody,
   CreateOrdersBodyType,
@@ -35,7 +35,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 export default async function orderRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.addHook(
     'preValidation',
-    fastify.auth([requireLoginedHook, [requireOwnerHook, requireEmployeeHook]], {
+    fastify.auth([requireLoginedHook, [requireOwnerHook, requireEmployeeHook, requireGuestHook]], {
       relation: 'and'
     })
   )
@@ -133,7 +133,30 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
       })
     }
   )
-  fastify.put<{ Reply: UpdateOrderResType; Body: UpdateOrderBodyType; Params: OrderParamType }>(
+  // fastify.put<{ Reply: UpdateOrderResType; Body: UpdateOrderBodyType; Params: { orderId: number } }>(
+  //   '/delete/:orderId',
+  //   {
+  //     schema: {
+  //       response: {
+  //         200: UpdateOrderRes
+  //       },
+  //       body: UpdateOrderBody,
+  //       params: OrderParam
+  //     }
+  //   },
+  //   async (request, reply) => {
+  //     const result = await deleteOrderController(request.params.orderId, {
+  //       ...request.body,
+  //       orderHandlerId: 2
+  //     })
+  //     reply.send({
+  //       message: 'Hủy đơn hàng thành công',
+  //       data: result.order as UpdateOrderResType['data']
+  //     })
+  //   }
+  // )
+
+  fastify.put<{ Reply: UpdateOrderResType; Body: UpdateOrderBodyType; Params: { orderId: number } }>(
     '/delete/:orderId',
     {
       schema: {
@@ -147,13 +170,21 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
     async (request, reply) => {
       const result = await deleteOrderController(request.params.orderId, {
         ...request.body,
-        orderHandlerId: 0
+        orderHandlerId: request.decodedAccessToken?.userId as number
       })
+
+      // Emit cho chủ cửa hàng trong room quản lý
       if (result.socketId) {
-        fastify.io.to(result.socketId).to(ManagerRoom).emit('update-order', result.order)
+        fastify.io.to(result.socketId).to(ManagerRoom).emit('order-rejected', result.order)
+        // Emit cho guest qua socketId riêng
+        fastify.io.to(result.socketId).emit('order-status-updated', {
+          orderId: result.order.id,
+          newStatus: OrderStatus.Rejected
+        })
       } else {
-        fastify.io.to(ManagerRoom).emit('update-order', result.order)
+        fastify.io.to(ManagerRoom).emit('order-rejected', result.order)
       }
+
       reply.send({
         message: 'Hủy đơn hàng thành công',
         data: result.order as UpdateOrderResType['data']

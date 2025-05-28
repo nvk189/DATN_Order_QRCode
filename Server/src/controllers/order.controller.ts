@@ -93,9 +93,10 @@ export const getOrdersController = async ({ fromDate, toDate }: { fromDate?: Dat
       guest: true
     },
     orderBy: {
-      createdAt: 'desc'
+      createdAt: 'asc'
     },
     where: {
+      // NOT: [{ status: 'Paid' }, { status: 'Reject' }],
       createdAt: {
         gte: fromDate,
         lte: toDate
@@ -238,27 +239,57 @@ export const updateOrderController = async (
   }
 }
 
+// export const deleteOrderController = async (
+//   orderId: number,
+//   body: UpdateOrderBodyType & { orderHandlerId: number }
+// ) => {
+//   const { status, dishId, quantity, orderHandlerId } = body
+
+//   const result = await prisma.$transaction(async (tx) => {
+//     const order = await tx.order.update({
+//       where: {
+//         id: orderId
+//       },
+//       data: {
+//         status: 'Rejected',
+//         orderHandlerId: orderHandlerId
+//       }
+//     })
+
+//     const socketRecord = await tx.socket.findUnique({
+//       where: {
+//         guestId: order.guestId!
+//       }
+//     })
+
+//     return {
+//       order,
+//       socketId: socketRecord?.socketId
+//     }
+//   })
+
+//   return result
+// }
 export const deleteOrderController = async (
   orderId: number,
   body: UpdateOrderBodyType & { orderHandlerId: number }
 ) => {
-  const { status, dishId, quantity } = body
-
   const result = await prisma.$transaction(async (tx) => {
     const order = await tx.order.update({
-      where: {
-        id: orderId
-      },
+      where: { id: orderId },
       data: {
-        status: 'Rejected',
-        orderHandlerId: 0
+        status: OrderStatus.Rejected,
+        orderHandlerId: 2
+      },
+      include: {
+        guest: true,
+        dishSnapshot: true,
+        orderHandler: true
       }
     })
 
     const socketRecord = await tx.socket.findUnique({
-      where: {
-        guestId: order.guestId!
-      }
+      where: { guestId: order.guestId! }
     })
 
     return {

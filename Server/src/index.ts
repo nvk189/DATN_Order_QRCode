@@ -24,7 +24,7 @@ import orderRoutes from '@/routes/order.route'
 import { socketPlugin } from '@/plugins/socket.plugins'
 import indicatorRoutes from '@/routes/indicator.route'
 import autoRemoveRefreshTokenJob from '@/jobs/autoRemoveRefreshToken.job'
-
+import payosRoutes from '@/routes/payos.route'
 const fastify = Fastify({
   logger: false
 })
@@ -35,9 +35,13 @@ const start = async () => {
     createFolder(path.resolve(envConfig.UPLOAD_FOLDER))
     autoRemoveRefreshTokenJob()
     const whitelist = ['*']
+    // fastify.register(cors, {
+    //   origin: whitelist,
+    //   credentials: true
+    // })
     fastify.register(cors, {
-      origin: whitelist, // Cho phép tất cả các domain gọi API
-      credentials: true // Cho phép trình duyệt gửi cookie đến server
+      origin: envConfig.CLIENT_URL,
+      credentials: true
     })
 
     fastify.register(fastifyAuth, {
@@ -89,6 +93,9 @@ const start = async () => {
     })
     fastify.register(indicatorRoutes, {
       prefix: '/indicators'
+    })
+    fastify.register(payosRoutes, {
+      prefix: '/payments'
     })
     await initOwnerAccount()
     await fastify.listen({

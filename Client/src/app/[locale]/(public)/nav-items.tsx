@@ -38,7 +38,7 @@ const staticMenuItems: {
   {
     title: "orders",
     href: "/guest/orders",
-    role: [Role.Guest],
+    role: [Role.Guest, Role.Owner],
   },
   {
     title: "login",

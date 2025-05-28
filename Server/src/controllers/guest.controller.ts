@@ -29,6 +29,8 @@ export const guestLoginController = async (body: GuestLoginBodyType) => {
   let guest = await prisma.guest.create({
     data: {
       name: body.name,
+      address: body.address,
+      phone: body.phone,
       tableNumber: body.tableNumber
     }
   })
@@ -207,4 +209,11 @@ export const guestGetOrdersController = async (guestId: number) => {
     }
   })
   return orders
+}
+export const getGuestDetail = (phone: string) => {
+  return prisma.guest.findFirstOrThrow({
+    where: {
+      phone
+    }
+  })
 }

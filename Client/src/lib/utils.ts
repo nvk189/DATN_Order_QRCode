@@ -5,7 +5,13 @@ import { UseFormSetError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import { jwtDecode } from "jwt-decode";
 import authApiRequest from "@/apiRequests/auth";
-import { DishStatus, OrderStatus, Role, TableStatus } from "@/constants/type";
+import {
+  DishStatus,
+  OrderStatus,
+  Role,
+  TableStatus,
+  Transporttatus,
+} from "@/constants/type";
 import envConfig, { defaultLocale } from "@/config";
 import { TokenPayload } from "@/types/jwt.types";
 import guestApiRequest from "@/apiRequests/guest";
@@ -171,6 +177,17 @@ export const getVietnameseTableStatus = (
       return "Đã đặt";
     default:
       return "Ẩn";
+  }
+};
+
+export const getVietnameseTransStatus = (
+  status: (typeof Transporttatus)[keyof typeof Transporttatus]
+) => {
+  switch (status) {
+    case Transporttatus.Home:
+      return "Tại quán";
+    case Transporttatus.Ship:
+      return "Online";
   }
 };
 

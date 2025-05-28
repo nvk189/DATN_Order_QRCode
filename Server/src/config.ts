@@ -38,7 +38,10 @@ const configSchema = z.object({
   PRODUCTION: z.enum(['true', 'false']).transform((val) => val === 'true'),
   DOCKER: z.enum(['true', 'false']).transform((val) => val === 'true'),
   PRODUCTION_URL: z.string(),
-  SERVER_TIMEZONE: z.string()
+  SERVER_TIMEZONE: z.string(),
+  CLIENT_ID: z.string(),
+  API_KEY: z.string(),
+  CHECKSUM_KEY: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

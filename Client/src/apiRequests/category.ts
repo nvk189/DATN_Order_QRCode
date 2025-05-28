@@ -7,8 +7,6 @@ import {
 } from "@/schemaValidations/category.schema";
 
 const categoryApiRequest = {
-  // Note: Next.js 15 thì mặc định fetch sẽ là { cache: 'no-store' } (dynamic rendering page)
-  // Hiện tại next.js 14 mặc định fetch sẽ là { cache: 'force-cache' } nghĩa là cache (static rendering page)
   list: () =>
     http.get<CategoryListResType>("categoryes", {
       next: { tags: ["categoryes"] },

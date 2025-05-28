@@ -12,12 +12,14 @@ import {
 } from "@/schemaValidations/guest.schema";
 import { useSearchParams, useParams } from "next/navigation";
 import { useEffect } from "react";
-import { useGuestLoginMutation } from "@/queries/useGuest";
+import { useGuestLoginMutation, useGetGuestQuery } from "@/queries/useGuest";
 import { useAppStore } from "@/components/app-provider";
 import { generateSocketInstace, handleErrorApi } from "@/lib/utils";
 import { useRouter } from "@/i18n/routing";
-
-export default function GuestLoginForm() {
+import { useState } from "react";
+import guestApiRequest from "@/apiRequests/guest";
+import { toast } from "@/components/ui/use-toast";
+export default function GuestLoginFormShip() {
   const setSocket = useAppStore((state) => state.setSocket);
   const setRole = useAppStore((state) => state.setRole);
   const searchParams = useSearchParams();
@@ -26,6 +28,7 @@ export default function GuestLoginForm() {
   const token = searchParams.get("token");
   const router = useRouter();
   const loginMutation = useGuestLoginMutation();
+  const [phone, setPhone] = useState<string>("");
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
     defaultValues: {
@@ -36,7 +39,10 @@ export default function GuestLoginForm() {
       tableNumber,
     },
   });
-
+  const { data: guestData, refetch: refetchGuest } = useGetGuestQuery({
+    id: phone,
+    enabled: true,
+  });
   useEffect(() => {
     if (!token) {
       router.push("/");
@@ -45,16 +51,40 @@ export default function GuestLoginForm() {
 
   async function onSubmit(values: GuestLoginBodyType) {
     if (loginMutation.isPending) return;
+
     try {
-      const result = await loginMutation.mutateAsync(values);
-      setRole(result.payload.data.guest.role);
-      setSocket(generateSocketInstace(result.payload.data.accessToken));
-      router.push("/guest/menu/?id=2");
+      // Thử lấy thông tin guest
+      const guestInfo = await guestApiRequest.getGuest(values.phone);
+
+      if (guestInfo?.payload.data) {
+        const loginResult = await loginMutation.mutateAsync(values);
+        setRole(loginResult.payload.data.guest.role);
+        setSocket(generateSocketInstace(loginResult.payload.data.accessToken));
+        router.push("/guest/menu/?id=2");
+      } else {
+        const result = await loginMutation.mutateAsync(values);
+        setRole(result.payload.data.guest.role);
+        setSocket(generateSocketInstace(result.payload.data.accessToken));
+        toast({
+          description: "Chào mừng trở lại",
+        });
+        router.push("/guest/menu/?id=2");
+      }
     } catch (error) {
-      handleErrorApi({
-        error,
-        setError: form.setError,
-      });
+      try {
+        const result = await loginMutation.mutateAsync(values);
+        setRole(result.payload.data.guest.role);
+        setSocket(generateSocketInstace(result.payload.data.accessToken));
+        toast({
+          description: "Đăng nhập thành công",
+        });
+        router.push("/guest/menu/?id=2");
+      } catch (err) {
+        handleErrorApi({
+          error: err,
+          setError: form.setError,
+        });
+      }
     }
   }
 
@@ -85,7 +115,20 @@ export default function GuestLoginForm() {
                 )}
               />
               <input type="hidden" {...form.register("address")} value="" />
-              <input type="hidden" {...form.register("phone")} value="" />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone">Số điện thoại</Label>
+                      <Input id="phone" type="text" required {...field} />
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
               <Button type="submit" className="w-full">
                 Đăng nhập
               </Button>

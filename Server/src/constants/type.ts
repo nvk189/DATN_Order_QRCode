@@ -38,6 +38,12 @@ export const TableStatus = {
 
 export const TableStatusValues = [TableStatus.Available, TableStatus.Hidden, TableStatus.Reserved] as const
 
+export const Transporttatus = {
+  Home: 'home',
+  Ship: 'ship'
+} as const
+
+export const TransportStatusValues = [Transporttatus.Home, Transporttatus.Ship] as const
 export const OrderStatus = {
   Pending: 'Pending',
   Processing: 'Processing',

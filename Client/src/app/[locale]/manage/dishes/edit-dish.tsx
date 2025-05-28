@@ -298,7 +298,7 @@ export default function EditDish({
                           onValueChange={(value) =>
                             field.onChange(Number(value))
                           }
-                          defaultValue={field.value?.toString()}
+                          value={field.value?.toString()}
                           disabled={isLoading || !categories}
                         >
                           <FormControl>

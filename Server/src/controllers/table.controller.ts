@@ -5,6 +5,9 @@ import { randomId } from '@/utils/helpers'
 
 export const getTableList = () => {
   return prisma.table.findMany({
+    // where:{
+    //   transport :"home"
+    // },
     orderBy: {
       createdAt: 'desc'
     }
@@ -55,6 +58,7 @@ export const updateTable = (number: number, data: UpdateTableBodyType) => {
           data: {
             status: data.status,
             capacity: data.capacity,
+            transport: data.transport,
             token
           }
         }),
@@ -77,6 +81,7 @@ export const updateTable = (number: number, data: UpdateTableBodyType) => {
     },
     data: {
       status: data.status,
+      transport: data.transport,
       capacity: data.capacity
     }
   })

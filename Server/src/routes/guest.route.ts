@@ -1,5 +1,6 @@
 import { ManagerRoom, Role } from '@/constants/type'
 import {
+  getGuestDetail,
   guestCreateOrdersController,
   guestGetOrdersController,
   guestLoginController,
@@ -23,8 +24,12 @@ import {
   GuestCreateOrdersResType,
   GuestGetOrdersRes,
   GuestGetOrdersResType,
+  GuestPhoneParams,
+  GuestInfoRes,
   GuestLoginBody,
   GuestLoginBodyType,
+  GuestPhoneParamsType,
+  GuestInfoResType,
   GuestLoginRes,
   GuestLoginResType
 } from '@/schemaValidations/guest.schema'
@@ -50,6 +55,8 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
           guest: {
             id: result.guest.id,
             name: result.guest.name,
+            address: result.guest.address,
+            phone: result.guest.phone,
             role: Role.Guest,
             tableNumber: result.guest.tableNumber,
             createdAt: result.guest.createdAt,
@@ -145,6 +152,29 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       reply.send({
         message: 'Lấy danh sách đơn hàng thành công',
         data: result as GuestGetOrdersResType['data']
+      })
+    }
+  )
+
+  fastify.get<{
+    Params: GuestPhoneParamsType
+    Reply: GuestInfoResType
+  }>(
+    '/:phone',
+    {
+      schema: {
+        params: GuestPhoneParams,
+        response: {
+          200: GuestInfoRes
+        }
+      }
+    },
+    async (request, reply) => {
+      const guest = await getGuestDetail(request.params.phone)
+
+      return reply.send({
+        data: guest as GuestInfoResType['data'],
+        message: 'Lấy thông tin khách thành công!'
       })
     }
   )

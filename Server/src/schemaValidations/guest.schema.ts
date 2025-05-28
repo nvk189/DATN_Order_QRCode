@@ -5,6 +5,8 @@ import z from 'zod'
 export const GuestLoginBody = z
   .object({
     name: z.string().min(2).max(50),
+    address: z.string(),
+    phone: z.string(),
     tableNumber: z.number(),
     token: z.string()
   })
@@ -12,6 +14,26 @@ export const GuestLoginBody = z
 
 export type GuestLoginBodyType = z.TypeOf<typeof GuestLoginBody>
 
+//  mới
+export const GuestPhoneParams = z.object({
+  phone: z.string()
+})
+export type GuestPhoneParamsType = z.infer<typeof GuestPhoneParams>
+export const GuestInfoRes = z.object({
+  data: z.object({
+    id: z.number(),
+    name: z.string(),
+    address: z.string(),
+    phone: z.string(),
+    tableNumber: z.number().nullable(),
+    createdAt: z.date(),
+    updatedAt: z.date()
+  }),
+  message: z.string()
+})
+export type GuestInfoResType = z.infer<typeof GuestInfoRes>
+
+//
 export const GuestLoginRes = z.object({
   data: z.object({
     accessToken: z.string(),
@@ -19,6 +41,8 @@ export const GuestLoginRes = z.object({
     guest: z.object({
       id: z.number(),
       name: z.string(),
+      address: z.string(),
+      phone: z.string(),
       role: z.enum([Role.Guest]),
       tableNumber: z.number().nullable(),
       createdAt: z.date(),

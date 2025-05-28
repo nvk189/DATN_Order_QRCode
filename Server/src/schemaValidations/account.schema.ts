@@ -127,6 +127,7 @@ export const GetListGuestsRes = z.object({
     z.object({
       id: z.number(),
       name: z.string(),
+      phone: z.string(),
       tableNumber: z.number().nullable(),
       createdAt: z.date(),
       updatedAt: z.date()
@@ -147,6 +148,8 @@ export type GetGuestListQueryParamsType = z.TypeOf<typeof GetGuestListQueryParam
 export const CreateGuestBody = z
   .object({
     name: z.string().trim().min(2).max(256),
+    address: z.string().trim().min(2).max(256),
+    phone: z.string().trim().min(2).max(256),
     tableNumber: z.number()
   })
   .strict()
@@ -158,6 +161,8 @@ export const CreateGuestRes = z.object({
   data: z.object({
     id: z.number(),
     name: z.string(),
+    address: z.string(),
+    phone: z.string(),
     role: z.enum([Role.Guest]),
     tableNumber: z.number().nullable(),
     createdAt: z.date(),

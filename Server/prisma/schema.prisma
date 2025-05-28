@@ -73,6 +73,7 @@ model Table {
   orders    Order[]
   guests    Guest[]
   status    String   @default("Available")
+  transport String   @default("home")
   token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,6 +106,8 @@ model RefreshToken {
 model Guest {
   id                    Int       @id @default(autoincrement())
   name                  String
+  address               String
+  phone                 String
   table                 Table?    @relation(fields: [tableNumber], references: [number], onDelete: SetNull, onUpdate: NoAction)
   tableNumber           Int?
   orders                Order[]
