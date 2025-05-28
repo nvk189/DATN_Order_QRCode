@@ -19,6 +19,17 @@ export const GuestPhoneParams = z.object({
   phone: z.string()
 })
 export type GuestPhoneParamsType = z.infer<typeof GuestPhoneParams>
+
+export const GuestUpdateParams = z.object({
+  name: z.string(),
+  address: z.string(),
+  phone: z.string(),
+  tableNumber: z.number().nullable(),
+  createdAt: z.preprocess((arg) => new Date(arg as string), z.date()),
+  updatedAt: z.preprocess((arg) => new Date(arg as string), z.date())
+})
+
+export type GuestUpdateParamsType = z.infer<typeof GuestUpdateParams>
 export const GuestInfoRes = z.object({
   data: z.object({
     id: z.number(),
@@ -31,6 +42,7 @@ export const GuestInfoRes = z.object({
   }),
   message: z.string()
 })
+
 export type GuestInfoResType = z.infer<typeof GuestInfoRes>
 
 //

@@ -1,11 +1,14 @@
 import { ManagerRoom, Role } from '@/constants/type'
+import { z } from 'zod'
+
 import {
   getGuestDetail,
   guestCreateOrdersController,
   guestGetOrdersController,
   guestLoginController,
   guestLogoutController,
-  guestRefreshTokenController
+  guestRefreshTokenController,
+  updateAddress
 } from '@/controllers/guest.controller'
 import { requireGuestHook, requireLoginedHook } from '@/hooks/auth.hooks'
 import {
@@ -31,7 +34,9 @@ import {
   GuestPhoneParamsType,
   GuestInfoResType,
   GuestLoginRes,
-  GuestLoginResType
+  GuestLoginResType,
+  GuestUpdateParamsType,
+  GuestUpdateParams
 } from '@/schemaValidations/guest.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
@@ -175,6 +180,29 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       return reply.send({
         data: guest as GuestInfoResType['data'],
         message: 'Lấy thông tin khách thành công!'
+      })
+    }
+  )
+
+  fastify.put<{
+    Params: { id: number }
+    Body: GuestUpdateParamsType
+    Reply: GuestInfoResType
+  }>(
+    '/:id',
+    {
+      schema: {
+        params: z.object({ id: z.coerce.number() }),
+        body: GuestUpdateParams,
+        response: { 200: GuestInfoRes }
+      }
+    },
+    async (request, reply) => {
+      const updated = await updateAddress(request.params.id, request.body)
+
+      return reply.send({
+        data: updated as GuestInfoResType['data'],
+        message: 'Cập nhật thành công!'
       })
     }
   )

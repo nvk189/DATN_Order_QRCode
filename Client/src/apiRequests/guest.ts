@@ -11,6 +11,7 @@ import {
   GuestLoginBodyType,
   GuestLoginResType,
   GuestResType,
+  GuestUpdateOrdersBodyType,
 } from "@/schemaValidations/guest.schema";
 
 const guestApiRequest = {
@@ -62,6 +63,8 @@ const guestApiRequest = {
     http.post<GuestCreateOrdersResType>("/guest/orders", body),
   getOrderList: () => http.get<GuestGetOrdersResType>("/guest/orders"),
   getGuest: (id: string) => http.get<GuestResType>(`/guest/${id}`),
+  update: (id: number, body: GuestUpdateOrdersBodyType) =>
+    http.put<GuestCreateOrdersResType>(`/guest/${id}`, body),
 };
 
 export default guestApiRequest;

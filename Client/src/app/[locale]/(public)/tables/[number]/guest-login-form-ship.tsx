@@ -55,7 +55,7 @@ export default function GuestLoginFormShip() {
     try {
       // Thử lấy thông tin guest
       const guestInfo = await guestApiRequest.getGuest(values.phone);
-
+      localStorage.setItem("phone_guest", JSON.stringify(values.phone));
       if (guestInfo?.payload.data) {
         const loginResult = await loginMutation.mutateAsync(values);
         setRole(loginResult.payload.data.guest.role);
@@ -66,7 +66,7 @@ export default function GuestLoginFormShip() {
         setRole(result.payload.data.guest.role);
         setSocket(generateSocketInstace(result.payload.data.accessToken));
         toast({
-          description: "Chào mừng trở lại",
+          description: "Đăng nhập thành công",
         });
         router.push("/guest/menu/?id=2");
       }

@@ -217,3 +217,12 @@ export const getGuestDetail = (phone: string) => {
     }
   })
 }
+
+export const updateAddress = (id: number, body: any) => {
+  return prisma.guest.update({
+    where: {
+      id
+    },
+    data: body
+  })
+}

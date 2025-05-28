@@ -4,11 +4,26 @@ import z from "zod";
 
 export const GuestLoginBody = z
   .object({
-    name: z.string().min(2).max(50),
-    address: z.string(),
-    phone: z.string(),
-    tableNumber: z.number(),
-    token: z.string(),
+    name: z
+      .string({ required_error: "Nhập tên" })
+      .min(2, { message: "Nhập tên" })
+      .max(50, { message: "Nhập tên" }),
+
+    address: z
+      .string({ required_error: "Nhập địa chỉ" })
+      .min(1, { message: "Nhập địa chỉ" }),
+
+    phone: z
+      .string({ required_error: "Nhập số điện thoại" })
+      .min(10, { message: "Nhập số điện thoại" })
+      .max(10, { message: "Nhập số điện thoại" }),
+
+    tableNumber: z.number({
+      required_error: "Nhập số bàn",
+      invalid_type_error: "Nhập số bàn",
+    }),
+
+    token: z.string({ required_error: "Thiếu mã token" }),
   })
   .strict();
 
@@ -45,6 +60,16 @@ export const GuestSchema = z.object({
   updatedAt: z.date(),
 });
 
+export const GuestSchema1 = z.object({
+  name: z.string(),
+  address: z.string(),
+  phone: z.string(),
+  tableNumber: z.number().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type GuestUpdateOrdersBodyType = z.TypeOf<typeof GuestSchema1>;
 export const GuestRes = z.object({
   data: GuestSchema,
   message: z.string(),
