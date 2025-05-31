@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
-        hostname: "api-bigboy.duthanhduoc.com",
+        hostname: "test-deploy-6kk4.onrender.com",
         pathname: "/**",
       },
       {

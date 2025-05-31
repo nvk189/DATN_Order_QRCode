@@ -18,7 +18,13 @@ export default async function payosRoutes(fastify: FastifyInstance) {
         orderIds: number[]
         description?: string
       }
-
+      await prisma.order.updateMany({
+        where: { id: { in: orderIds } },
+        data: {
+          status: 'Paid',
+          updatedAt: new Date()
+        }
+      })
       const orders = await prisma.order.findMany({
         where: { id: { in: orderIds } },
         select: {
@@ -56,8 +62,8 @@ export default async function payosRoutes(fastify: FastifyInstance) {
         amount,
         description: safeDescription,
         items,
-        returnUrl: 'https://your-domain.com/payment-success',
-        cancelUrl: 'https://your-domain.com/payment-cancel'
+        returnUrl: 'http://localhost:3000/vi/guest/orders',
+        cancelUrl: 'http://localhost:3000/vi/guest/orders'
       })
 
       return reply.send({ checkoutUrl: paymentLinkResponse.checkoutUrl })

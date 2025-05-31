@@ -136,7 +136,7 @@ function PaymentMethodDialog({
           <AlertDialogTitle>Chọn phương thức thanh toán</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex justify-between">
-          {!hasPhone && (
+          {
             <AlertDialogCancel
               className="bg-gray-300 text-gray-800"
               onClick={() => {
@@ -146,7 +146,7 @@ function PaymentMethodDialog({
             >
               Thanh toán tại quầy
             </AlertDialogCancel>
-          )}
+          }
           <AlertDialogAction
             className="bg-blue-600 text-white"
             onClick={() => {
@@ -169,52 +169,107 @@ export default function OrdersCart() {
   const socket = useAppStore((state) => state.socket);
   const [address, setAddress] = useState("");
   const [guestInfor, setguestInfo] = useState({});
-  useEffect(() => {
-    const fetchGuestInfo = async () => {
-      const guestPhone = JSON.parse(
-        localStorage.getItem("phone_guest") || "{}"
-      );
-      console.log(guestPhone);
-      try {
-        const guestInfo = await guestApiRequest.getGuest(guestPhone);
-        await setguestInfo(guestInfo);
-        setAddress(guestInfo?.payload?.data?.address);
-      } catch (error) {
-        console.error("Lỗi khi lấy thông tin khách:", error);
-      }
-    };
+  const [phone, setPhone] = useState("");
+  // useEffect(() => {
+  //   const fetchGuestInfo = async () => {
+  //     const guestPhone = JSON.parse(
+  //       localStorage.getItem("phone_guest") || "{}"
+  //     );
+  //     console.log(guestPhone);
+  //     try {
+  //       const guestInfo = await guestApiRequest.getGuest(guestPhone);
+  //       await setguestInfo(guestInfo);
+  //       setAddress(guestInfo?.payload?.data?.address);
+  //     } catch (error) {
+  //       console.error("Lỗi khi lấy thông tin khách:", error);
+  //     }
+  //   };
 
-    fetchGuestInfo();
-  }, []);
+  //   fetchGuestInfo();
+  // }, []);
 
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
+  // const handlePaymentDialogOpen = async () => {
+  //   const guestPhone = JSON.parse(localStorage.getItem("phone_guest") || "{}");
+  //   setPhone(guestPhone);
+  //   const guestInfo = await guestApiRequest.getGuest(guestPhone);
+  //   await setguestInfo(guestInfo);
+  //   setAddress(guestInfo?.payload?.data?.address);
+
+  //   if (address === "" || address.length < 0) {
+  //     setAddress("");
+  //     toast({
+  //       description: "Cập nhật địa chỉ nhận hàng",
+  //     });
+  //     return;
+  //   }
+  //   if (address !== "" && address.trim().length > 0) {
+  //     await guestApiRequest.update(guestInfo?.payload?.data?.id, {
+  //       name: guestInfo?.payload?.data?.name,
+  //       tableNumber: guestInfo?.payload?.data?.tableNumber,
+  //       createdAt: new Date(guestInfo?.payload?.data?.createdAt),
+  //       updatedAt: new Date(),
+  //       address: address,
+  //       phone: guestInfo?.payload?.data?.phone,
+  //     });
+  //     setIsPaymentDialogOpen(true);
+  //   }
+  // };
   const handlePaymentDialogOpen = async () => {
-    const guestPhone = JSON.parse(localStorage.getItem("phone_guest") || "{}");
+    const guestPhone = JSON.parse(
+      localStorage.getItem("phone_guest") || "null"
+    );
 
-    const guestInfo = await guestApiRequest.getGuest(guestPhone);
-    await setguestInfo(guestInfo);
-    setAddress(guestInfo?.payload?.data?.address);
-
-    if (address === "" || address.length < 0) {
-      setAddress("");
-      toast({
-        description: "Cập nhật địa chỉ nhận hàng",
-      });
+    // Trường hợp không có số điện thoại -> Ẩn địa chỉ, gọi thanh toán luôn
+    if (
+      !guestPhone ||
+      typeof guestPhone !== "string" ||
+      guestPhone.trim() === ""
+    ) {
+      setIsPaymentDialogOpen(true);
       return;
     }
-    if (address !== "" && address.trim().length > 0) {
-      await guestApiRequest.update(guestInfo?.payload?.data?.id, {
-        name: guestInfo?.payload?.data?.name,
-        tableNumber: guestInfo?.payload?.data?.tableNumber,
-        createdAt: new Date(guestInfo?.payload?.data?.createdAt),
-        updatedAt: new Date(),
-        address: address,
-        phone: guestInfo?.payload?.data?.phone,
-      });
+
+    setPhone(guestPhone);
+
+    try {
+      const guestInfo = await guestApiRequest.getGuest(guestPhone);
+      await setguestInfo(guestInfo);
+
+      const guestData = guestInfo?.payload?.data;
+
+      if (guestData) {
+        const currentAddress = guestData?.address || "";
+        setAddress(currentAddress);
+
+        if (!currentAddress || currentAddress.trim() === "") {
+          toast({
+            description:
+              "Vui lòng cập nhật địa chỉ nhận hàng trước khi thanh toán.",
+          });
+          return;
+        }
+
+        await guestApiRequest.update(guestData.id, {
+          name: guestData.name,
+          tableNumber: guestData.tableNumber,
+          createdAt: new Date(guestData.createdAt),
+          updatedAt: new Date(),
+          address: currentAddress,
+          phone: guestData.phone,
+        });
+      }
+
       setIsPaymentDialogOpen(true);
+    } catch (error) {
+      console.error("Lỗi khi xử lý thanh toán:", error);
+      toast({
+        description: "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+      });
     }
   };
+
   const { waitingForPaying, paid } = useMemo(() => {
     return orders.reduce(
       (result, order) => {
@@ -306,7 +361,7 @@ export default function OrdersCart() {
         });
         return;
       }
-      if (address === "") {
+      if (phone && address === "") {
         toast({
           description: "Cập nhật địa chỉ nhận hàng",
         });
@@ -417,7 +472,7 @@ export default function OrdersCart() {
         </div>
       </div>
 
-      <div className="sticky bottom-0   ">
+      {/* <div className="sticky bottom-0   ">
         <div className="w-full flex items-start gap-3">
           <p className="text-lg font-medium mt-1">Địa chỉ:</p>
           <textarea
@@ -428,7 +483,21 @@ export default function OrdersCart() {
             onChange={(e) => setAddress(e.target.value)}
           ></textarea>
         </div>
-      </div>
+      </div> */}
+      {phone && (
+        <div className="sticky bottom-0">
+          <div className="w-full flex items-start gap-3">
+            <p className="text-lg font-medium mt-1">Địa chỉ:</p>
+            <textarea
+              id="address"
+              className="flex-1 border rounded-md p-2 resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Nhập địa chỉ của bạn..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            ></textarea>
+          </div>
+        </div>
+      )}
 
       <div className="sticky bottom-0 ">
         <div className="w-full flex justify-center">
