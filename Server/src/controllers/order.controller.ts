@@ -93,7 +93,7 @@ export const getOrdersController = async ({ fromDate, toDate }: { fromDate?: Dat
       guest: true
     },
     orderBy: {
-      createdAt: 'asc'
+      createdAt: 'desc'
     },
     where: {
       // NOT: [{ status: 'Paid' }, { status: 'Reject' }],

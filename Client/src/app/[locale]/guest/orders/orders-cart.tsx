@@ -31,7 +31,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import orderApiRequest from "@/apiRequests/order";
 import guestApiRequest from "@/apiRequests/guest";
-import { number } from "zod";
+import { boolean, number } from "zod";
 const useDeleteOrderMutation = () => {
   return useMutation({
     mutationFn: ({
@@ -110,7 +110,7 @@ function AlertDialogDeleteOrder({
   );
 }
 const guestPhoneData = JSON.parse(localStorage.getItem("phone_guest") || "{}");
-const phone = guestPhoneData?.payload?.data?.phone;
+const phone = guestPhoneData?.payload?.data?.phone || "";
 const hasPhone = !phone || phone.trim() === "";
 // Modal chọn phương thức thanh toán
 function PaymentMethodDialog({
@@ -170,103 +170,94 @@ export default function OrdersCart() {
   const [address, setAddress] = useState("");
   const [guestInfor, setguestInfo] = useState({});
   const [phone, setPhone] = useState("");
-  // useEffect(() => {
-  //   const fetchGuestInfo = async () => {
-  //     const guestPhone = JSON.parse(
-  //       localStorage.getItem("phone_guest") || "{}"
-  //     );
-  //     console.log(guestPhone);
-  //     try {
-  //       const guestInfo = await guestApiRequest.getGuest(guestPhone);
-  //       await setguestInfo(guestInfo);
-  //       setAddress(guestInfo?.payload?.data?.address);
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy thông tin khách:", error);
-  //     }
-  //   };
-
-  //   fetchGuestInfo();
-  // }, []);
+  const [statusAddress, setStatusAddress] = useState(false);
 
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  useEffect(() => {
+    async function fetchGuestInfo() {
+      const guestPhone = JSON.parse(
+        localStorage.getItem("phone_guest") || "null"
+      );
+      if (
+        !guestPhone ||
+        typeof guestPhone !== "string" ||
+        guestPhone.trim() === ""
+      ) {
+        setStatusAddress(false);
+      } else {
+        try {
+          const guestInfo = await guestApiRequest.getGuest(guestPhone);
+          const guestData = guestInfo?.payload?.data;
+          setguestInfo(guestData);
+          console.log(guestInfo);
+          if (guestData) {
+            const currentAddress = guestData?.address || "";
+            const currentPhone = guestData?.phone || "";
+            setAddress(currentAddress);
+            setPhone(currentPhone);
+            setStatusAddress(true);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy thông tin khách:", error);
+          setStatusAddress(false);
+        }
+      }
+    }
+    fetchGuestInfo();
+  }, []);
 
-  // const handlePaymentDialogOpen = async () => {
-  //   const guestPhone = JSON.parse(localStorage.getItem("phone_guest") || "{}");
-  //   setPhone(guestPhone);
-  //   const guestInfo = await guestApiRequest.getGuest(guestPhone);
-  //   await setguestInfo(guestInfo);
-  //   setAddress(guestInfo?.payload?.data?.address);
-
-  //   if (address === "" || address.length < 0) {
-  //     setAddress("");
-  //     toast({
-  //       description: "Cập nhật địa chỉ nhận hàng",
-  //     });
-  //     return;
-  //   }
-  //   if (address !== "" && address.trim().length > 0) {
-  //     await guestApiRequest.update(guestInfo?.payload?.data?.id, {
-  //       name: guestInfo?.payload?.data?.name,
-  //       tableNumber: guestInfo?.payload?.data?.tableNumber,
-  //       createdAt: new Date(guestInfo?.payload?.data?.createdAt),
-  //       updatedAt: new Date(),
-  //       address: address,
-  //       phone: guestInfo?.payload?.data?.phone,
-  //     });
-  //     setIsPaymentDialogOpen(true);
-  //   }
-  // };
   const handlePaymentDialogOpen = async () => {
     const guestPhone = JSON.parse(
       localStorage.getItem("phone_guest") || "null"
     );
 
-    // Trường hợp không có số điện thoại -> Ẩn địa chỉ, gọi thanh toán luôn
+    console.log(guestPhone);
     if (
       !guestPhone ||
       typeof guestPhone !== "string" ||
       guestPhone.trim() === ""
     ) {
+      setPhone(guestPhone);
+      setStatusAddress(false);
       setIsPaymentDialogOpen(true);
-      return;
-    }
-
-    setPhone(guestPhone);
-
-    try {
-      const guestInfo = await guestApiRequest.getGuest(guestPhone);
-      await setguestInfo(guestInfo);
-
-      const guestData = guestInfo?.payload?.data;
-
-      if (guestData) {
-        const currentAddress = guestData?.address || "";
-        setAddress(currentAddress);
-
-        if (!currentAddress || currentAddress.trim() === "") {
+      console.log(statusAddress);
+    } else {
+      try {
+        if (!address || address.trim() === "") {
           toast({
             description:
               "Vui lòng cập nhật địa chỉ nhận hàng trước khi thanh toán.",
           });
           return;
         }
+        console.log(guestInfor);
+        const info = guestInfor as {
+          id: number;
+          name: string;
+          address: string;
+          phone: string;
+          tableNumber: number;
+          createdAt: string;
+          updatedAt: string;
+        };
 
-        await guestApiRequest.update(guestData.id, {
-          name: guestData.name,
-          tableNumber: guestData.tableNumber,
-          createdAt: new Date(guestData.createdAt),
+        console.log(info);
+        await guestApiRequest.update(info.id, {
+          name: info.name,
+          tableNumber: info.tableNumber,
+          createdAt: new Date(info.createdAt),
           updatedAt: new Date(),
-          address: currentAddress,
-          phone: guestData.phone,
+          address: address, // dùng từ state
+          phone: phone, // dùng từ state
+        });
+
+        setIsPaymentDialogOpen(true);
+      } catch (error) {
+        console.error("Lỗi khi xử lý thanh toán:", error);
+        toast({
+          description: "Đã xảy ra lỗi. Vui lòng thử lại sau.",
         });
       }
-
-      setIsPaymentDialogOpen(true);
-    } catch (error) {
-      console.error("Lỗi khi xử lý thanh toán:", error);
-      toast({
-        description: "Đã xảy ra lỗi. Vui lòng thử lại sau.",
-      });
     }
   };
 
@@ -472,19 +463,7 @@ export default function OrdersCart() {
         </div>
       </div>
 
-      {/* <div className="sticky bottom-0   ">
-        <div className="w-full flex items-start gap-3">
-          <p className="text-lg font-medium mt-1">Địa chỉ:</p>
-          <textarea
-            id="address"
-            className="flex-1 border rounded-md p-2 resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Nhập địa chỉ của bạn..."
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          ></textarea>
-        </div>
-      </div> */}
-      {phone && (
+      {statusAddress && (
         <div className="sticky bottom-0">
           <div className="w-full flex items-start gap-3">
             <p className="text-lg font-medium mt-1">Địa chỉ:</p>
